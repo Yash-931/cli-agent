@@ -16,7 +16,7 @@ async function main() {
         break;
       }
 
-      console.log("Agent: ");
+      process.stdout.write("Agent: ")
       await responseGeneration(userInput);
     }
   } catch (error) {

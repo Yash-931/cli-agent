@@ -13,6 +13,8 @@ export async function responseGeneration(prompt: string) {
   });
 
   for await (const chunk of stream) {
-    console.log(chunk.text);
+    process.stdout.write(chunk.text ?? "")
   }
+
+  process.stdout.write("\n")
 }
