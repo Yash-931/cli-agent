@@ -1,5 +1,5 @@
 import { GoogleGenAI } from "@google/genai";
-import { calculator } from "./tools";
+import { calculator, toolRegistry } from "./tools";
 
 const ai = new GoogleGenAI({
   vertexai: true,
@@ -50,6 +50,13 @@ export async function responseGeneration(prompt: string) {
 
   if (calls && calls.length > 0) {
     console.log("Tool called")
+
+    for (const call of calls) {
+        const toolName = call.name
+        const registeredTool = toolRegistry[toolName];
+        
+    }
+    
     const a = Number(calls[0]?.args.a);
     const b = Number(calls[0]?.args.b);
     const op = String(calls[0]?.args.op);

@@ -1,3 +1,7 @@
+export const toolRegistry = {
+    calculator
+}
+
 export function calculator(a: number, b: number, op: string) {
     if(op === "add") {
         return a+b;
