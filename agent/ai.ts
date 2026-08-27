@@ -45,13 +45,62 @@ export async function responseGeneration(prompt: string) {
     },
   });
 
+
   const calls = response.functionCalls;
 
-  if(calls) {
-    const toolResponse = calculator(calls[0]?.args.a, calls[0]?.args.b, calls[0]?.args.op)
+  if (calls && calls.length > 0) {
+    console.log("Tool called")
+    const a = Number(calls[0]?.args.a);
+    const b = Number(calls[0]?.args.b);
+    const op = String(calls[0]?.args.op);
+    const toolResponse = calculator(a, b, op);
+    const contents = [
+      {
+        role: "user",
+        parts: [{ text: prompt }],
+      },
+      {
+        role: "model",
+        parts: [
+          {
+            functionCall: {
+              name: calls[0].name,
+              args: calls[0].args,
+            },
+          },
+        ],
+      },
+      {
+        role: "user",
+        parts: [
+          {
+            functionResponse: {
+              name: calls[0].name,
+              response: {
+                result: toolResponse,
+              },
+            },
+          },
+        ],
+      },
+    ];
+
+    const finalResponse = await ai.models.generateContent({
+      model: "gemini-2.5-flash",
+      contents: contents,
+      config: {
+        tools: [
+          {
+            functionDeclarations: [calculatorDeclaration],
+          },
+        ],
+      },
+    });
+
+    console.log(finalResponse.text);
   }
 
   process.stdout.write("\n");
 }
 
-await responseGeneration("What is 25 + 15")
+await responseGeneration("25 + 15");
