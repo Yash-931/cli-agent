@@ -53,6 +53,7 @@ export async function responseGeneration(prompt: string) {
 
     for (const call of calls) {
         const toolName = call.name
+        //tool registry
         const registeredTool = toolRegistry[toolName];
         
     }
