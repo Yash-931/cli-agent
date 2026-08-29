@@ -54,6 +54,7 @@ export async function responseGeneration(prompt: string) {
     for (const call of calls) {
         const toolName = call.name
         //tool registry
+        //which will be used to add tools to the cli agent
         const registeredTool = toolRegistry[toolName];
         
     }
