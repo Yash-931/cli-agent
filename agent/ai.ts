@@ -53,16 +53,19 @@ export async function responseGeneration(prompt: string) {
 
     for (const call of calls) {
         const toolName = call.name
-        //tool registry
-        //which will be used to add tools to the cli agent
+
+        if(!toolName || !(toolName in toolRegistry)){
+            throw new Error(`Unknown tool call: ${toolName}`)
+        }
+
         const registeredTool = toolRegistry[toolName];
+
+        const toolResponse = registeredTool(Number(call.args?.a), Number(call.args?.b), String(call.args?.op))
+
+        console.log("Tool response: " + toolResponse)
         
     }
-    
-    const a = Number(calls[0]?.args.a);
-    const b = Number(calls[0]?.args.b);
-    const op = String(calls[0]?.args.op);
-    const toolResponse = calculator(a, b, op);
+
     const contents = [
       {
         role: "user",
