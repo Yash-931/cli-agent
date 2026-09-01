@@ -87,8 +87,12 @@ export async function responseGeneration(conversation: Content[]) {
     });
   }
 
-  process.stdout.write(
-    "I wasn't able to finish this within the tool-call limit — could you rephrase or simplify the request?",
-  );
+  const limitMessage =
+    "I wasn't able to finish this within the tool-call limit — could you rephrase or simplify the request?";
+  process.stdout.write(limitMessage);
+  conversation.push({
+    role: "model",
+    parts: [{ text: limitMessage }],
+  });
   return;
 }
