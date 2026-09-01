@@ -1,5 +1,6 @@
 import { GoogleGenAI, type Content } from "@google/genai";
 import { toolRegistry } from "../tools";
+import { SYSTEM_PROMPT } from "../prompt";
 const ai = new GoogleGenAI({
   vertexai: true,
   location: "us-central1",
@@ -11,33 +12,35 @@ const toolDeclarations = Object.values(toolRegistry).map(
 );
 
 export async function responseGeneration(conversation: Content[]) {
-  const response = await ai.models.generateContent({
-    model: "gemini-2.5-flash",
-    contents: conversation,
-    config: {
-      tools: [
-        {
-          functionDeclarations: toolDeclarations,
-        },
-      ],
-    },
-  });
-
-  let calls = response.functionCalls;
-
-  if (!calls || calls.length === 0) {
-    process.stdout.write(response.text?.trimEnd() ?? "");
-    conversation.push({
-      role: "model",
-      parts: [{ text: response.text ?? "" }],
+  while (true) {
+    const response = await ai.models.generateContent({
+      model: "gemini-2.5-flash",
+      contents: conversation,
+      config: {
+        systemInstruction: SYSTEM_PROMPT,
+        tools: [
+          {
+            functionDeclarations: toolDeclarations,
+          },
+        ],
+      },
     });
-    return;
-  }
 
-  while (calls && calls.length > 0) {
+    const calls = response.functionCalls;
+
+    if (!calls || calls.length === 0) {
+      process.stdout.write(response.text?.trimEnd() ?? "");
+      conversation.push({
+        role: "model",
+        parts: [{ text: response.text ?? "" }],
+      });
+      break;
+    }
+
     const toolResponses = [];
 
     for (const call of calls) {
+        console.log("Tool called ", call.name)
       const toolName = call.name;
 
       if (!toolName || !(toolName in toolRegistry)) {
@@ -79,27 +82,6 @@ export async function responseGeneration(conversation: Content[]) {
       role: "user",
       parts: functionResponsePart,
     });
-
-    const finalResponse = await ai.models.generateContent({
-      model: "gemini-2.5-flash",
-      contents: conversation,
-      config: {
-        tools: [
-          {
-            functionDeclarations: toolDeclarations,
-          },
-        ],
-      },
-    });
-
-    calls = finalResponse.functionCalls;
-    if (!calls || calls.length === 0) {
-      process.stdout.write(finalResponse.text?.trimEnd() ?? "");
-      conversation.push({
-        role: "model",
-        parts: [{text: finalResponse.text ?? ""}]
-      })
-      return;
-    }
   }
+  return;
 }
