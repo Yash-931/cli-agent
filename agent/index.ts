@@ -7,24 +7,23 @@ console.log("Agent is running...");
 async function main() {
   const rl = readline.createInterface({ input, output });
 
-  try {
-    while (true) {
+  while (true) {
+    try {
       const userInput = await rl.question("You: ");
-      rl.pause();
       if (userInput === "/exit") {
         console.log("Goodbye!");
         break;
       }
       process.stdout.write("Agent: ");
       await responseGeneration(userInput);
-
-      rl.resume()
+      console.log()
+    } catch (error) {
+      console.error("An error occured" + error);
     }
-  } catch (error) {
-    console.error("An error occurred " + error);
-  } finally {
-    rl.close();
   }
+
+  rl.close()
+  process.exit(0);
 }
 
 main();

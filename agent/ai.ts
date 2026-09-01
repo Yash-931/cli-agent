@@ -28,7 +28,7 @@ export async function responseGeneration(prompt: string) {
   const toolResponses = [];
 
   if (!calls || calls.length === 0) {
-    console.log(response.text);
+    process.stdout.write(response.text?.trimEnd() ?? "");
     return;
   }
 
