@@ -7,6 +7,7 @@ console.log("Agent is running...");
 
 // TODOS:
 // - After conversation reaches a certain length we will need to summarize that as well
+// - Add more tools for a multi-step process, using each others output to make a final response
 
 async function main() {
   const rl = readline.createInterface({ input, output });

@@ -11,8 +11,12 @@ const toolDeclarations = Object.values(toolRegistry).map(
   (tool) => tool.declaration,
 );
 
+let n = 10;
+
 export async function responseGeneration(conversation: Content[]) {
-  while (true) {
+  const MAX_ITERATIONS = 10;
+
+  for (let i = 0; i < MAX_ITERATIONS; i++) {
     const response = await ai.models.generateContent({
       model: "gemini-2.5-flash",
       contents: conversation,
@@ -82,5 +86,9 @@ export async function responseGeneration(conversation: Content[]) {
       parts: functionResponsePart,
     });
   }
+
+  process.stdout.write(
+    "I wasn't able to finish this within the tool-call limit — could you rephrase or simplify the request?",
+  );
   return;
 }
