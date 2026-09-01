@@ -39,7 +39,7 @@ export async function responseGeneration(prompt: string) {
       throw new Error(`Unknown tool call: ${toolName}`);
     }
 
-    const registeredTool = toolRegistry[toolName];
+    const registeredTool = toolRegistry[toolName as keyof typeof toolRegistry];
 
     const toolResponse = await registeredTool.execute(call.args);
     toolResponses.push({
@@ -79,7 +79,7 @@ export async function responseGeneration(prompt: string) {
     },
   ];
 
-  const finalResponse = await ai.models.generateContent({
+  const stream = await ai.models.generateContentStream({
     model: "gemini-2.5-flash",
     contents: contents,
     config: {
@@ -91,5 +91,7 @@ export async function responseGeneration(prompt: string) {
     },
   });
 
-  console.log(finalResponse.text);
+  for await (const chunk of stream) {
+    process.stdout.write(chunk.text ?? "")
+  }
 }

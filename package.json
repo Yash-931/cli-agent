@@ -1,6 +1,6 @@
 {
   "name": "cli-agent",
-  "module": "index.ts",
+  "module": "agent/index.ts",
   "type": "module",
   "private": true,
   "devDependencies": {

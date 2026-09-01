@@ -10,14 +10,15 @@ async function main() {
   try {
     while (true) {
       const userInput = await rl.question("You: ");
-
+      rl.pause();
       if (userInput === "/exit") {
         console.log("Goodbye!");
         break;
       }
-
-      process.stdout.write("Agent: ")
+      process.stdout.write("Agent: ");
       await responseGeneration(userInput);
+
+      rl.resume()
     }
   } catch (error) {
     console.error("An error occurred " + error);

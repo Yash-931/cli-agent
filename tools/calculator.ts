@@ -1,3 +1,5 @@
+import { Type } from "@google/genai";
+
 function executeCalculator(a: number, b: number, op: string) {
   if (op === "add") {
     return a + b;
@@ -20,20 +22,20 @@ export const calculator = {
     name: "calculator",
     description: "Calculate a mathematical expression",
     parameters: {
-      type: "OBJECT",
+      type: Type.OBJECT,
       properties: {
         a: {
-          type: "NUMBER",
+          type: Type.NUMBER,
           description: "The first number",
         },
 
         b: {
-          type: "NUMBER",
+          type: Type.NUMBER,
           description: "The second number",
         },
 
         op: {
-          type: "STRING",
+          type: Type.STRING,
           description: "The mathematical operation to perform",
           enum: ["add", "subtract", "multiply", "divide"],
         },
