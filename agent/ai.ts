@@ -40,7 +40,6 @@ export async function responseGeneration(conversation: Content[]) {
     const toolResponses = [];
 
     for (const call of calls) {
-        console.log("Tool called ", call.name)
       const toolName = call.name;
 
       if (!toolName || !(toolName in toolRegistry)) {
