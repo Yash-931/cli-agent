@@ -1,36 +1,14 @@
 import { GoogleGenAI } from "@google/genai";
-import { calculator, toolRegistry } from "./tools";
-
+import { toolRegistry } from "../tools";
 const ai = new GoogleGenAI({
   vertexai: true,
   location: "us-central1",
   project: process.env.GCP_PROJECT,
 });
 
-const calculatorDeclaration = {
-  name: "calculator",
-  description: "Calculate a mathematical expression",
-  parameters: {
-    type: "OBJECT",
-    properties: {
-      a: {
-        type: "NUMBER",
-        description: "The first number",
-      },
-
-      b: {
-        type: "NUMBER",
-        description: "The second number",
-      },
-
-      op: {
-        type: "STRING",
-        description: "The mathematical operation to perform",
-        enum: ["add", "subtract", "multiply", "divide"],
-      },
-    },
-  },
-};
+const toolDeclarations = Object.values(toolRegistry).map(
+  (tool) => tool.declaration,
+);
 
 export async function responseGeneration(prompt: string) {
   const response = await ai.models.generateContent({
@@ -39,80 +17,79 @@ export async function responseGeneration(prompt: string) {
     config: {
       tools: [
         {
-          functionDeclarations: [calculatorDeclaration],
+          functionDeclarations: toolDeclarations,
         },
       ],
     },
   });
 
-
   const calls = response.functionCalls;
 
-  if (calls && calls.length > 0) {
-    console.log("Tool called")
+  const toolResponses = [];
 
-    for (const call of calls) {
-        const toolName = call.name
-
-        if(!toolName || !(toolName in toolRegistry)){
-            throw new Error(`Unknown tool call: ${toolName}`)
-        }
-
-        const registeredTool = toolRegistry[toolName];
-
-        const toolResponse = registeredTool(Number(call.args?.a), Number(call.args?.b), String(call.args?.op))
-
-        console.log("Tool response: " + toolResponse)
-        
-    }
-
-    const contents = [
-      {
-        role: "user",
-        parts: [{ text: prompt }],
-      },
-      {
-        role: "model",
-        parts: [
-          {
-            functionCall: {
-              name: calls[0].name,
-              args: calls[0].args,
-            },
-          },
-        ],
-      },
-      {
-        role: "user",
-        parts: [
-          {
-            functionResponse: {
-              name: calls[0].name,
-              response: {
-                result: toolResponse,
-              },
-            },
-          },
-        ],
-      },
-    ];
-
-    const finalResponse = await ai.models.generateContent({
-      model: "gemini-2.5-flash",
-      contents: contents,
-      config: {
-        tools: [
-          {
-            functionDeclarations: [calculatorDeclaration],
-          },
-        ],
-      },
-    });
-
-    console.log(finalResponse.text);
+  if (!calls || calls.length === 0) {
+    console.log(response.text);
+    return;
   }
 
-  process.stdout.write("\n");
-}
+  for (const call of calls) {
+    const toolName = call.name;
 
-await responseGeneration("25 + 15");
+    if (!toolName || !(toolName in toolRegistry)) {
+      throw new Error(`Unknown tool call: ${toolName}`);
+    }
+
+    const registeredTool = toolRegistry[toolName];
+
+    const toolResponse = await registeredTool.execute(call.args);
+    toolResponses.push({
+      name: toolName,
+      result: toolResponse,
+    });
+  }
+
+  const functionResponsePart = toolResponses.map((res) => ({
+    functionResponse: {
+      name: res.name,
+      response: {
+        result: res.result,
+      },
+    },
+  }));
+
+  const functionCallPart = calls.map((call) => ({
+    functionCall: {
+      name: call.name,
+      args: call.args,
+    },
+  }));
+
+  const contents = [
+    {
+      role: "user",
+      parts: [{ text: prompt }],
+    },
+    {
+      role: "model",
+      parts: functionCallPart,
+    },
+    {
+      role: "user",
+      parts: functionResponsePart,
+    },
+  ];
+
+  const finalResponse = await ai.models.generateContent({
+    model: "gemini-2.5-flash",
+    contents: contents,
+    config: {
+      tools: [
+        {
+          functionDeclarations: toolDeclarations,
+        },
+      ],
+    },
+  });
+
+  console.log(finalResponse.text);
+}
