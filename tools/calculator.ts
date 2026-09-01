@@ -20,7 +20,7 @@ function executeCalculator(a: number, b: number, op: string) {
 export const calculator = {
   declaration: {
     name: "calculator",
-    description: "Calculate a mathematical expression",
+    description: "Calculate a basic mathematical expression. Supports addition, multiplication, division, subtraction of two numbers. Can use this tool multiple times breaking a complex mathematical expression and solving it in parts",
     parameters: {
       type: Type.OBJECT,
       properties: {
